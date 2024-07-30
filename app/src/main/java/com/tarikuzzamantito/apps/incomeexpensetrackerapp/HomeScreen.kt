@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import com.tarikuzzamantito.apps.incomeexpensetrackerapp.data.model.DataEntity
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.ui.theme.zinc
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.viewmodel.HomeViewModel
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.viewmodel.HomeViewModelFactory
@@ -66,7 +70,7 @@ fun HomeScreen() {
                 Column {
                     Text(text = "Good After noon", fontSize = 16.sp, color = Color.White)
                     Text(
-                        text = "Hello, World",
+                        text = "Tarikuzzaman Tito",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -79,30 +83,37 @@ fun HomeScreen() {
                     modifier = Modifier.align(Alignment.CenterEnd)
                 )
             }
+
+            val state = viewModel.allData.collectAsState(initial = emptyList())
+            val income = viewModel.getTotalIncome(state.value)
+            val expense = viewModel.getTotalExpense(state.value)
+            val balance = viewModel.getBalance(state.value)
             CardItem(
                 modifier = Modifier
                     .constrainAs(card) {
                         top.linkTo(nameRow.bottom)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    }
+                    }, balance, income, expense
             )
 
-            TransactionList(modifier = Modifier
-                .fillMaxWidth()
-                .constrainAs(list) {
-                    top.linkTo(card.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    height = Dimension.fillToConstraints
-                })
+            TransactionList(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .constrainAs(list) {
+                        top.linkTo(card.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        height = Dimension.fillToConstraints
+                    }, list = state.value, viewModel
+            )
         }
     }
 }
 
 @Composable
-fun CardItem(modifier: Modifier) {
+fun CardItem(modifier: Modifier, balance: String, income: String, expense: String) {
     Column(
         modifier = modifier
             .padding(16.dp)
@@ -122,7 +133,7 @@ fun CardItem(modifier: Modifier) {
             ) {
                 Text(text = "Total balance", fontSize = 16.sp, color = Color.White)
                 Text(
-                    text = "$ 7000",
+                    text = balance,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -144,13 +155,13 @@ fun CardItem(modifier: Modifier) {
             CardRowItem(
                 modifier = Modifier.align(Alignment.CenterStart),
                 title = "Income",
-                amount = "$5,670.00",
+                amount = income,
                 image = R.drawable.ic_income
             )
             CardRowItem(
                 modifier = Modifier.align(Alignment.CenterEnd),
                 title = "Expense",
-                amount = "$4,508.00",
+                amount = expense,
                 image = R.drawable.ic_expense
             )
         }
@@ -158,48 +169,38 @@ fun CardItem(modifier: Modifier) {
 }
 
 @Composable
-fun TransactionList(modifier: Modifier) {
-    Column(modifier = modifier.padding(horizontal = 16.dp)) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text(text = "Recent Transactions", fontSize = 20.sp)
-            Text(text = "See All", fontSize = 20.sp, modifier = Modifier.align(Alignment.CenterEnd))
+fun TransactionList(modifier: Modifier, list: List<DataEntity>, viewModel: HomeViewModel) {
+    LazyColumn(modifier = modifier.padding(horizontal = 16.dp)) {
+        item {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(text = "Recent Transactions", fontSize = 20.sp)
+                Text(
+                    text = "See All",
+                    fontSize = 20.sp,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
         }
-        SingleTransaction(
-            title = "Netflix",
-            amount = "- $200.00",
-            icon = R.drawable.ic_netflix,
-            date = "Today",
-            color = Color.Red
-        )
-        SingleTransaction(
-            title = "Upwork",
-            amount = "+ $5000.00",
-            icon = R.drawable.ic_upwork,
-            date = "Today",
-            color = Color.Green
-        )
-        SingleTransaction(
-            title = "Paypal",
-            amount = "+ $1000.00",
-            icon = R.drawable.ic_paypal,
-            date = "Today",
-            color = Color.Green
-        )
-        SingleTransaction(
-            title = "Starbucks",
-            amount = "- $300.00",
-            icon = R.drawable.ic_starbucks,
-            date = "Today",
-            color = Color.Red
-        )
+
+        items(list) { item ->
+            SingleTransaction(
+                title = item.title,
+                amount = item.amount.toString(),
+                icon = viewModel.getItemIcon(item),
+                date = item.date.toString(),
+                color = if (item.type == "Income") Color.Green else Color.Red
+            )
+        }
     }
 }
 
 @Composable
 fun SingleTransaction(title: String, amount: String, icon: Int, date: String, color: Color) {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
         Row {
             Image(
                 painter = painterResource(id = icon),

@@ -17,6 +17,8 @@ import com.tarikuzzamantito.apps.incomeexpensetrackerapp.ui.theme.IncomeExpenseT
 
 /**
  * Created by Tarikuzzaman Tito on 7/28/2024 4:15 PM
+ * 35:43 / 50:07
+ * https://www.youtube.com/watch?v=dPeSoNWVu-Y&ab_channel=CodewithFK
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
