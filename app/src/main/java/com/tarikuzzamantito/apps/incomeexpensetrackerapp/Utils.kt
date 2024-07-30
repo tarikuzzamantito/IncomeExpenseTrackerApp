@@ -13,4 +13,7 @@ object Utils {
         return dateFormatter.format(dateInMills)
     }
 
+    fun formatDecimalToValue(double: Double) : String {
+        return String.format("%.2f", double)
+    }
 }

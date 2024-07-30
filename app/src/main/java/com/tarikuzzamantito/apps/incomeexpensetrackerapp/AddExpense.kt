@@ -5,13 +5,11 @@ package com.tarikuzzamantito.apps.incomeexpensetrackerapp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,23 +32,36 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.tarikuzzamantito.apps.incomeexpensetrackerapp.data.model.DataEntity
+import com.tarikuzzamantito.apps.incomeexpensetrackerapp.viewmodel.AddExpenseViewModel
+import com.tarikuzzamantito.apps.incomeexpensetrackerapp.viewmodel.AddExpenseViewModelFactory
+import kotlinx.coroutines.launch
 
 /**
  * Created by Tarikuzzaman Tito on 7/28/2024 6:41 PM
  */
 @Composable
-fun AddExpense() {
+fun AddExpense(navController: NavController) {
+
+    val viewModel =
+        AddExpenseViewModelFactory(LocalContext.current).create(AddExpenseViewModel::class.java)
+    val coroutineScope = rememberCoroutineScope()
+
     Surface {
         Surface(modifier = Modifier.fillMaxSize()) {
             ConstraintLayout(modifier = Modifier.fillMaxSize()) {
@@ -103,14 +115,20 @@ fun AddExpense() {
                         top.linkTo(nameRow.bottom)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    })
+                    }, onAddExpenseClick = {
+                    coroutineScope.launch {
+                        if (viewModel.addData(it)) {
+                            navController.popBackStack()
+                        }
+                    }
+                })
             }
         }
     }
 }
 
 @Composable
-fun DataCollectForm(modifier: Modifier) {
+fun DataCollectForm(modifier: Modifier, onAddExpenseClick: (model: DataEntity) -> Unit) {
 
     val name = remember {
         mutableStateOf("")
@@ -141,31 +159,6 @@ fun DataCollectForm(modifier: Modifier) {
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        /*Text(text = "Type", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-        Spacer(modifier = Modifier.size(4.dp))
-        OutlinedTextField(value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.size(16.dp))
-
-        Text(text = "Name", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-        Spacer(modifier = Modifier.size(4.dp))
-        OutlinedTextField(value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.size(16.dp))
-
-        Text(text = "Category", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-        Spacer(modifier = Modifier.size(4.dp))
-        OutlinedTextField(value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.size(16.dp))
-
-        Text(text = "Amount", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-        Spacer(modifier = Modifier.size(4.dp))
-        OutlinedTextField(value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.size(16.dp))
-
-        Text(text = "Date", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-        Spacer(modifier = Modifier.size(4.dp))
-        OutlinedTextField(value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.size(16.dp))*/
-
         Text(text = "Name", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         Spacer(modifier = Modifier.size(4.dp))
         OutlinedTextField(value = name.value, onValueChange = {
@@ -189,7 +182,11 @@ fun DataCollectForm(modifier: Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { dateDialogVisibility.value = true },
-            enabled = false
+            enabled = false,
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = Color.Black,
+                disabledTextColor = Color.Black
+            )
         )
         Spacer(modifier = Modifier.size(8.dp))
 
@@ -214,7 +211,17 @@ fun DataCollectForm(modifier: Modifier) {
         Spacer(modifier = Modifier.size(8.dp))
 
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                val model = DataEntity(
+                    null,
+                    name.value,
+                    amount.value.toDoubleOrNull() ?: 0.0,
+                    date.value,
+                    category.value,
+                    type.value
+                )
+                onAddExpenseClick(model)
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Add Expense", fontSize = 14.sp, color = Color.White)
@@ -291,6 +298,6 @@ fun CustomDropdown(listOfItems: List<String>, onItemSelected: (item: String) -> 
 @Composable
 @Preview(showBackground = true)
 fun AddExpensePreview() {
-    AddExpense()
+    AddExpense(rememberNavController())
 }
 

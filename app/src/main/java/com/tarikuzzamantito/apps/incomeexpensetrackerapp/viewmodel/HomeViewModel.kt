@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.R
+import com.tarikuzzamantito.apps.incomeexpensetrackerapp.Utils
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.data.AppDatabase
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.data.dao.DataDao
 import com.tarikuzzamantito.apps.incomeexpensetrackerapp.data.model.DataEntity
@@ -15,15 +16,15 @@ class HomeViewModel(dao: DataDao) : ViewModel() {
     val allData = dao.getAllData()
 
     fun getBalance(list: List<DataEntity>): String {
-        var total = 0.0
+        var balance = 0.0
         list.forEach { data ->
             if (data.type == "Income") {
-                total += data.amount
+                balance += data.amount
             } else {
-                total -= data.amount
+                balance -= data.amount
             }
         }
-        return "$ $total"
+        return "$ ${Utils.formatDecimalToValue(balance)}"
     }
 
     fun getTotalIncome(list: List<DataEntity>): String {
@@ -33,7 +34,7 @@ class HomeViewModel(dao: DataDao) : ViewModel() {
                 totalIn += data.amount
             }
         }
-        return "$ $totalIn"
+        return "$ ${Utils.formatDecimalToValue(totalIn)}"
     }
 
     fun getTotalExpense(list: List<DataEntity>): String {
@@ -43,7 +44,8 @@ class HomeViewModel(dao: DataDao) : ViewModel() {
                 totalEx += data.amount
             }
         }
-        return "$ $totalEx"
+
+        return "$ ${Utils.formatDecimalToValue(totalEx)}"
     }
 
     fun getItemIcon(item: DataEntity) : Int{
