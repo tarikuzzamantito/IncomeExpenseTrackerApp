@@ -86,7 +86,6 @@ fun AddExpense(navController: NavController) {
                             end.linkTo(parent.end)
                         }
                 ) {
-
                     Image(
                         painter = painterResource(id = R.drawable.ic_back),
                         contentDescription = null,
@@ -129,7 +128,6 @@ fun AddExpense(navController: NavController) {
 
 @Composable
 fun DataCollectForm(modifier: Modifier, onAddExpenseClick: (model: DataEntity) -> Unit) {
-
     val name = remember {
         mutableStateOf("")
     }
