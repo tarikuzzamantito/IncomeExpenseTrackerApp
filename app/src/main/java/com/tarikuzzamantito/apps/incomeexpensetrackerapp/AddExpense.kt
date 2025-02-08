@@ -273,9 +273,7 @@ fun CustomDropdown(listOfItems: List<String>, onItemSelected: (item: String) -> 
     ExposedDropdownMenuBox(expanded = expanded.value, onExpandedChange = { expanded.value = it }) {
         TextField(
             value = selectedItem.value, onValueChange = {},
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
             readOnly = true,
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded.value)
